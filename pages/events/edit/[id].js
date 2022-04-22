@@ -1,17 +1,18 @@
+import moment from 'moment';
+import { FaImage } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import moment from 'moment';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '@/components/Layout';
 import Modal from '@/components/Modal';
-import { FaImage } from 'react-icons/fa';
+import ImageUpload from '@/components/ImageUpload';
 import { API_URL } from '@/config/index';
 import styles from '@/styles/Form.module.css';
-import Image from 'next/image';
 
-export default function EditEventPage({ evt }) {
+export default function EditEventPage({ evt, token }) {
   const [values, setValues] = useState({
     name: evt.attributes.name,
     performers: evt.attributes.performers,
@@ -21,13 +22,11 @@ export default function EditEventPage({ evt }) {
     time: evt.attributes.time,
     description: evt.attributes.description
   });
-
   const [imagePreview, setImagePreview] = useState(
     evt.attributes.image.data
       ? evt.attributes.image.data.attributes.formats.thumbnail.url
       : null
   );
-
   const [showModal, setShowModal] = useState(false);
 
   const router = useRouter();
@@ -44,25 +43,19 @@ export default function EditEventPage({ evt }) {
       toast.error('Please fill in all fields');
     }
 
-    const res = await fetch(`${API_URL}/api/events/${evt.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        data: {
-          name: values.name,
-          performers: values.performers,
-          venue: values.venue,
-          address: values.address,
-          date: values.date,
-          time: values.time,
-          description: values.description
-        }
-      })
-    });
+    const res = await fetch(
+      `${API_URL}/api/events?populate=*&filters[id]=${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(values)
+      }
+    );
 
     if (!res.ok) {
+      if (res.status === 403 || res.status === 401) {
+        toast.error('Unauthorized');
+        return;
+      }
       toast.error('Something Went Wrong');
     } else {
       const evt = await res.json();
@@ -75,8 +68,22 @@ export default function EditEventPage({ evt }) {
     setValues({ ...values, [name]: value });
   };
 
+  const imageUploaded = async e => {
+    const res = await fetch(
+      `${API_URL}/api/events?populate=*&filters[id]=${evt.id}`
+    );
+    const data = await res.json();
+    console.log('====================================');
+    console.log(data);
+    console.log('====================================');
+    setImagePreview(
+      data.data[0].attributes.image.data.attributes.formats.thumbnail.url
+    );
+    setShowModal(false);
+  };
+
   return (
-    <Layout title='Edit New Event'>
+    <Layout title='Add New Event'>
       <Link href='/events'>Go Back</Link>
       <h1>Edit Event</h1>
       <ToastContainer />
@@ -166,14 +173,18 @@ export default function EditEventPage({ evt }) {
           <p>No image uploaded</p>
         </div>
       )}
+
       <div>
-        <button onClick={() => setShowModal(true)} className='btn-secondary'>
+        <button
+          onClick={() => setShowModal(true)}
+          className='btn-secondary btn-icon'
+        >
           <FaImage /> Set Image
         </button>
       </div>
 
       <Modal show={showModal} onClose={() => setShowModal(false)}>
-        IMAGE UPLOAD
+        <ImageUpload evtId={evt.id} imageUploaded={imageUploaded} />
       </Modal>
     </Layout>
   );
