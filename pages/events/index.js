@@ -1,8 +1,9 @@
 import Link from 'next/link';
-
 import Layout from '@/components/Layout';
 import EventItem from '@/components/EventItem';
 import { API_URL } from '@/config/index';
+
+const PER_PAGE = 2;
 
 export default function EventsPage({ events }) {
   return (
@@ -15,11 +16,25 @@ export default function EventsPage({ events }) {
     </Layout>
   );
 }
-export async function getStaticProps() {
-  const res = await fetch(`${API_URL}/api/events?populate=*&_sort=date:ASC`);
+
+export async function getServerSideProps({ query: { page = 1 } }) {
+  // Calculate start page
+  const start = +page === 1 ? 0 : (+page - 1) * PER_PAGE;
+
+  // Fetch total/count
+  const totalRes = await fetch(`${API_URL}/api/events/count`);
+  const total = await totalRes.json();
+
+  console.log('====================================');
+  console.log(total);
+  console.log('====================================');
+
+  const res = await fetch(
+    `${API_URL}/api/events?populate=*&_sort=date:ASC&_limit=${PER_PAGE}&_start=${start}`
+  );
+
   const events = await res.json();
   return {
-    props: { events: events.data },
-    revalidate: 1
+    props: { events: events.data, page: +page, total }
   };
 }
