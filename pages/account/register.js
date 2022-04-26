@@ -16,6 +16,13 @@ export default function RegisterPage() {
 
   const { register, error } = useContext(AuthContext);
 
+  useEffect(() => {
+    // useEffect Cleanup Function
+    register;
+    // To let error works a cleanup function must be implemented
+    error && toast.error(error);
+  });
+
   const handleSubmit = e => {
     e.preventDefault();
 
@@ -28,7 +35,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <Layout title='User Login'>
+    <Layout title='User Register'>
       <div className={styles.auth}>
         <h1>
           <FaUser /> Register
@@ -72,7 +79,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          <input type='submit' value='Login' className='btn' />
+          <input type='submit' value='Register' className='btn' />
         </form>
 
         <p>
