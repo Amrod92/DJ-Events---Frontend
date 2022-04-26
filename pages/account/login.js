@@ -14,6 +14,13 @@ export default function LoginPage() {
 
   const { login, error } = useContext(AuthContext);
 
+  useEffect(() => {
+    // useEffect Cleanup Function
+    login;
+    // To let error works a cleanup function must be implemented
+    error && toast.error(error);
+  });
+
   const handleSubmit = e => {
     e.preventDefault();
     login({ email, password });
