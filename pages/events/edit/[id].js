@@ -74,7 +74,7 @@ export default function EditEventPage({ evt, token }) {
     );
     const data = await res.json();
     console.log('====================================');
-    console.log(data);
+    console.log('data': data);
     console.log('====================================');
     setImagePreview(
       data.data[0].attributes.image.data.attributes.formats.thumbnail.url

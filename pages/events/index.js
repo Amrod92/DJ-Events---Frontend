@@ -25,10 +25,6 @@ export async function getServerSideProps({ query: { page = 1 } }) {
   const totalRes = await fetch(`${API_URL}/api/events/count`);
   const total = await totalRes.json();
 
-  console.log('====================================');
-  console.log(total);
-  console.log('====================================');
-
   const res = await fetch(
     `${API_URL}/api/events?populate=*&_sort=date:ASC&_limit=${PER_PAGE}&_start=${start}`
   );
